@@ -3,6 +3,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import CurrentCondition from "@/components/currentCondition";
 import HourlyForecastList from "@/components/hourlyForecastList";
 import TenDayForecastList from "@/components/tenDayForecastList";
+import WeatherConditionList from "@/components/weatherConditionList";
+import ForecastHeader from "@/components/forecastHeader";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function Forecast() {
@@ -18,6 +20,11 @@ export default function Forecast() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <ForecastHeader
+            city="New York"
+            onPressSearch={() => console.log("Search pressed")}
+            onPressCalendar={() => console.log("Calendar pressed")}
+          />
           <View>
             <CurrentCondition
               city="New York"
@@ -25,7 +32,7 @@ export default function Forecast() {
               condition="Sunny"
             />
           </View>
-
+          <WeatherConditionList />
           <HourlyForecastList />
           <TenDayForecastList />
         </ScrollView>

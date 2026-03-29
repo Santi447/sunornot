@@ -11,6 +11,8 @@ export default function TabLayout() {
           sceneStyle: { backgroundColor: "#0A1E25"}, 
           title: 'Forecast',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="cloud" color={color} />,
+          tabBarStyle: { backgroundColor: "#0A1E25", opacity: 0.95 },
+          headerShown: false,
         }}
       />
     </Tabs>

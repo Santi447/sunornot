@@ -3,7 +3,6 @@ import {currentConditionProps} from '../types/currentConditionTypes';
 export default function CurrentCondition({ tempIcon, city, temperature, condition, high, low, windText, humidity }: currentConditionProps ) {
   return(
     <View style={styles.container}>
-      <Text style={styles.cityText}>{city}</Text>
 
       <View style={styles.topRow}>
         <View style={styles.iconContainer}>
@@ -31,13 +30,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 18,
     paddingBottom: 20,
-  },
-  cityText: {
-    color: "",
-    fontSize: 18,
-    fontWeight: "600",
-    alignSelf: "center",
-    marginBottom: 22,
   },
   topRow: {
     flexDirection: "row",

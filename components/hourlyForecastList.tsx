@@ -2,10 +2,16 @@ import { View, Text, FlatList, StyleSheet } from "react-native";
 import HourlyForecastCard from "./hourlyForecastCardItem";
 
 const hourlyData = [
-  { id: "1", time: "Now", temperature: 25, weatherCode: 1000 },
-  { id: "2", time: "2 PM", temperature: 28, weatherCode: 1003 },
-  { id: "3", time: "3 PM", temperature: 30, weatherCode: 1003 },
-  { id: "4", time: "4 PM", temperature: 31, weatherCode: 1003 },
+  { id: "1", time: "Now", temperature: 25, weatherCode: 1000, icon: "🌤️" },
+  { id: "2", time: "2 PM", temperature: 28, weatherCode: 1003, icon: "☁️" },
+  { id: "3", time: "3 PM", temperature: 30, weatherCode: 1003, icon: "☁️" },
+  { id: "4", time: "4 PM", temperature: 31, weatherCode: 1003, icon: "☁️" },
+  { id: "5", time: "Now", temperature: 25, weatherCode: 1000, icon: "🌤️" },
+  { id: "6", time: "2 PM", temperature: 28, weatherCode: 1003, icon: "☁️" },
+  { id: "7", time: "3 PM", temperature: 30, weatherCode: 1003, icon: "☁️" },
+  { id: "8", time: "4 PM", temperature: 31, weatherCode: 1003, icon: "☁️" },
+  
+  
 ];
 
 export default function HourlyForecastList() {
@@ -18,6 +24,7 @@ export default function HourlyForecastList() {
 
       <FlatList
         data={hourlyData}
+        nestedScrollEnabled
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
@@ -28,6 +35,7 @@ export default function HourlyForecastList() {
             timeLabel={item.time}
             temperature={item.temperature}
             weatherCode={item.weatherCode}
+            icon={item.icon}
           />
         )}
       />

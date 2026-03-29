@@ -17,6 +17,7 @@ export default function Forecast() {
         style={styles.container}
       >
         <ScrollView
+          nestedScrollEnabled
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >

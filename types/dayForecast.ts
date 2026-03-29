@@ -7,7 +7,7 @@ type DayForecastProps = {
   weatherCode: number;
 };
 type TenDayForecastListProps = {
-  data: DayForecastProps[];
+  data?: DayForecastProps[];
 };
 
 export type { DayForecastProps, TenDayForecastListProps };

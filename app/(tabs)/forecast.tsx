@@ -62,6 +62,18 @@ const hourlyForecastData =
     icon: "☁️",
   })) ?? [];
 
+const currentConditionData = weather
+  ? {
+      city: "Calgary",
+      temperature: Math.round(weather.current.temperature_2m),
+      tempIcon: "☁️",
+      condition: "Cloudy",
+      high: Math.round(weather.daily.temperature_2m_max[0]),
+      low: Math.round(weather.daily.temperature_2m_min[0]),
+      windText: `${Math.round(weather.current.wind_speed_10m)} mph`,
+      humidity: weather.current.relative_humidity_2m,
+    }
+  : null;
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <LinearGradient
@@ -76,16 +88,14 @@ const hourlyForecastData =
           showsVerticalScrollIndicator={false}
         >
           <ForecastHeader
-            city="New York"
+            city="Calgary"
             onPressSearch={() => console.log("Search pressed")}
             onPressCalendar={() => console.log("Calendar pressed")}
           />
           <View>
-            <CurrentCondition
-              city="New York"
-              temperature={75}
-              condition="Sunny"
-            />
+          {!loading && currentConditionData && (
+            <CurrentCondition {...currentConditionData} />
+          )}
           </View>
           <WeatherConditionList />
           {!loading && <HourlyForecastList data={hourlyForecastData} />}

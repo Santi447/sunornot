@@ -1,20 +1,21 @@
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import HourlyForecastCard from "./hourlyForecastCardItem";
+import { hourlyForecastListProps } from "@/types/hourlyForecast";
 
 const hourlyData = [
-  { id: "1", time: "Now", temperature: 25, weatherCode: 1000, icon: "🌤️" },
-  { id: "2", time: "2 PM", temperature: 28, weatherCode: 1003, icon: "☁️" },
-  { id: "3", time: "3 PM", temperature: 30, weatherCode: 1003, icon: "☁️" },
-  { id: "4", time: "4 PM", temperature: 31, weatherCode: 1003, icon: "☁️" },
-  { id: "5", time: "Now", temperature: 25, weatherCode: 1000, icon: "🌤️" },
-  { id: "6", time: "2 PM", temperature: 28, weatherCode: 1003, icon: "☁️" },
-  { id: "7", time: "3 PM", temperature: 30, weatherCode: 1003, icon: "☁️" },
-  { id: "8", time: "4 PM", temperature: 31, weatherCode: 1003, icon: "☁️" },
+  { id: "1", timeLabel: "Now", temperature: 25, weatherCode: 1000, icon: "🌤️" },
+  { id: "2", timeLabel: "2 PM", temperature: 28, weatherCode: 1003, icon: "☁️" },
+  { id: "3", timeLabel: "3 PM", temperature: 30, weatherCode: 1003, icon: "☁️" },
+  { id: "4", timeLabel: "4 PM", temperature: 31, weatherCode: 1003, icon: "☁️" },
+  { id: "5", timeLabel: "Now", temperature: 25, weatherCode: 1000, icon: "🌤️" },
+  { id: "6", timeLabel: "2 PM", temperature: 28, weatherCode: 1003, icon: "☁️" },
+  { id: "7", timeLabel: "3 PM", temperature: 30, weatherCode: 1003, icon: "☁️" },
+  { id: "8", timeLabel: "4 PM", temperature: 31, weatherCode: 1003, icon: "☁️" },
   
   
 ];
 
-export default function HourlyForecastList() {
+export default function HourlyForecastList({ data }: hourlyForecastListProps) {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
@@ -23,7 +24,7 @@ export default function HourlyForecastList() {
       </View>
 
       <FlatList
-        data={hourlyData}
+        data={ data}
         nestedScrollEnabled
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -32,7 +33,8 @@ export default function HourlyForecastList() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item }) => (
           <HourlyForecastCard
-            timeLabel={item.time}
+            id={item.id}
+            timeLabel={item.timeLabel}
             temperature={item.temperature}
             weatherCode={item.weatherCode}
             icon={item.icon}

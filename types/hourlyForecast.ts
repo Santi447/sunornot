@@ -1,7 +1,11 @@
 type hourlyForecastItem = {
+  id: string;
   timeLabel?: string;
   icon?: string;
   temperature?: number;
   weatherCode?: number;
 };
-export type {hourlyForecastItem};
+type hourlyForecastListProps = {
+  data?: hourlyForecastItem[];
+};
+export type {hourlyForecastItem, hourlyForecastListProps};

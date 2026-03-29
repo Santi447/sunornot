@@ -22,7 +22,7 @@ export default function TenDayForecastList({ data }: TenDayForecastListProps) {
 
       <View style={styles.card}>
         <FlatList
-          data={data || forecastData}
+          data={data}
           nestedScrollEnabled
           showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.id}

@@ -9,6 +9,7 @@ import ForecastHeader from "@/components/forecastHeader";
 import { LinearGradient } from "expo-linear-gradient";
 import { getWeatherForecast } from "@/services/weatherApi";
 import { WeatherResponse } from "@/types/weather";
+import { LogBox } from 'react-native';
 
 function formatDayLabel(dateString: string, index: number): string {
   if (index === 0) return "Today";
@@ -52,6 +53,7 @@ export default function Forecast() {
     const loadWeather = async () => {
       try {
         const data = await getWeatherForecast(51.0447, -114.0719);
+        LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
         setWeather(data);
       } catch (error) {
         console.log("Failed to load weather:", error);

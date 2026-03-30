@@ -1,17 +1,27 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
-
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Tabs } from "expo-router";
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }}>
+    <Tabs screenOptions={{ tabBarActiveTintColor: "#37D7FF" }}>
       <Tabs.Screen
         name="forecast"
         options={{
-          sceneStyle: { backgroundColor: "#0A1E25"}, 
-          title: 'Forecast',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="cloud" color={color} />,
-          tabBarStyle: { backgroundColor: "#0A1E25", opacity: 0.95 },
+          sceneStyle: { backgroundColor: "#0A1E25" },
+          title: "Forecast",
+          tabBarIcon: ({ focused }) => (
+
+              <MaterialCommunityIcons
+                name="weather-partly-cloudy"
+                size={30}
+                color={focused ? "#37D7FF" : "gray"}
+              />  
+          ),
+          tabBarStyle: {
+            backgroundColor: "#0A1E25",
+            opacity: 0.95,
+          },
+          tabBarLabel: "Forecast",
           headerShown: false,
         }}
       />

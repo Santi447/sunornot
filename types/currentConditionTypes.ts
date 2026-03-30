@@ -7,6 +7,7 @@ type currentConditionProps = {
   low?: number;
   windText?: string;
   humidity?: number;
+  unit?: string;
 }
 
 export type { currentConditionProps };

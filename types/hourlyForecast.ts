@@ -3,6 +3,7 @@ type hourlyForecastItem = {
   timeLabel?: string;
   icon?: string;
   temperature?: number;
+  unit: string;
   weatherCode?: number;
 };
 type hourlyForecastListProps = {

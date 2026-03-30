@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import {currentConditionProps} from '../types/currentConditionTypes';
-export default function CurrentCondition({ tempIcon, city, temperature, condition, high, low, windText, humidity }: currentConditionProps ) {
+export default function CurrentCondition({ tempIcon, city, temperature, condition, high, low, windText, humidity,unit }: currentConditionProps ) {
   return(
     <View style={styles.container}>
 
@@ -11,14 +11,13 @@ export default function CurrentCondition({ tempIcon, city, temperature, conditio
 
         <View style={styles.textContent}>
           <Text style={styles.label}>CURRENT CONDITIONS</Text>
-          <Text style={styles.temperature}>{temperature}°F</Text>
+          <Text style={styles.temperature}>{temperature}{unit}</Text>
         </View>
       </View>
 
       <Text style={styles.condition}>{condition}</Text>
       <Text style={styles.summary}>
-        High of {high}°F. Low of {low}°F. Winds from the {windText}. Humidity at{" "}
-        {humidity}%.
+        High of {high}{unit}. Low of {low}{unit}. Winds from the {windText}. Humidity at {humidity}%.
       </Text>
     </View>
   );

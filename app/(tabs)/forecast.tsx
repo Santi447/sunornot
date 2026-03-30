@@ -13,8 +13,13 @@ import { WeatherResponse } from "@/types/weather";
 function formatDayLabel(dateString: string, index: number): string {
   if (index === 0) return "Today";
 
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", { weekday: "long" });
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    timeZone: "America/Edmonton",
+  });
 }
 function formatHourLabel(dateString: string, index: number): string {
   if (index === 0) return "Now";
@@ -60,6 +65,7 @@ const hourlyForecastData =
     temperature: Math.round(weather.hourly.temperature_2m[index]),
     weatherCode: weather.hourly.weather_code[index],
     icon: "☁️",
+    unit: weather.current_units.temperature_2m,
   })) ?? [];
 
 const currentConditionData = weather
@@ -70,10 +76,43 @@ const currentConditionData = weather
       condition: "Cloudy",
       high: Math.round(weather.daily.temperature_2m_max[0]),
       low: Math.round(weather.daily.temperature_2m_min[0]),
-      windText: `${Math.round(weather.current.wind_speed_10m)} mph`,
+      windText: `${Math.round(weather.current.wind_speed_10m)} ${weather.current_units.wind_speed_10m}`,
       humidity: weather.current.relative_humidity_2m,
+      unit: weather.current_units.temperature_2m,
     }
   : null;
+const weatherConditionData = weather
+  ? [
+      {
+        id: "1",
+        icon: "🌀",
+        label: "Wind",
+        value: Math.round(weather.current.wind_speed_10m),
+        unit: weather.current_units.wind_speed_10m,
+      },
+      {
+        id: "2",
+        icon: "💧",
+        label: "Humidity",
+        value: weather.current.relative_humidity_2m,
+        unit: weather.current_units.relative_humidity_2m,
+      },
+      {
+        id: "3",
+        icon: "☀️",
+        label: "UV Index",
+        value: Math.round(weather.daily.uv_index_max[0]),
+        unit: "",
+      },
+      {
+        id: "4",
+        icon: "👁",
+        label: "Visibility",
+        value: Math.round(weather.current.visibility / 1000),
+        unit: weather.current_units.visibility,
+      },
+    ]
+  : [];
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <LinearGradient
@@ -97,7 +136,7 @@ const currentConditionData = weather
             <CurrentCondition {...currentConditionData} />
           )}
           </View>
-          <WeatherConditionList />
+          <WeatherConditionList data={weatherConditionData} />
           {!loading && <HourlyForecastList data={hourlyForecastData} />}
           {!loading && <TenDayForecastList data={tenDayForecastData} />}
         </ScrollView>

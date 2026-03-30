@@ -38,6 +38,7 @@ export default function HourlyForecastList({ data }: hourlyForecastListProps) {
             temperature={item.temperature}
             weatherCode={item.weatherCode}
             icon={item.icon}
+            unit={item.unit}
           />
         )}
       />

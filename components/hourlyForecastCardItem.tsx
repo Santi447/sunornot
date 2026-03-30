@@ -1,6 +1,6 @@
 import {hourlyForecastItem} from '../types/hourlyForecast';
 import { View, Text, StyleSheet } from 'react-native';
-export default function HourlyForecastCard({ timeLabel, temperature, icon,weatherCode }: hourlyForecastItem) {
+export default function HourlyForecastCard({ timeLabel, temperature, icon,weatherCode, unit }: hourlyForecastItem) {
  return (
     <View style={styles.card}>
       <Text style={styles.time}>{timeLabel}</Text>
@@ -13,7 +13,7 @@ export default function HourlyForecastCard({ timeLabel, temperature, icon,weathe
         )}
       </View>
 
-      <Text style={styles.temperature}>{temperature}°F</Text>
+      <Text style={styles.temperature}>{temperature}{unit}</Text>
     </View>
   );
 

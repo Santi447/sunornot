@@ -24,11 +24,12 @@ function formatDayLabel(dateString: string, index: number): string {
 function formatHourLabel(dateString: string, index: number): string {
   if (index === 0) return "Now";
 
-  const date = new Date(dateString);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    hour12: true,
-  });
+  const hour = Number(dateString.split("T")[1].split(":")[0]);
+
+  if (hour === 0) return "12 AM";
+  if (hour < 12) return `${hour} AM`;
+  if (hour === 12) return "12 PM";
+  return `${hour - 12} PM`;
 }
 
 export default function Forecast() {
@@ -57,16 +58,29 @@ export default function Forecast() {
       low: Math.round(weather.daily.temperature_2m_min[index]),
       weatherCode: weather.daily.weather_code[index],
     })) ?? [];
+const currentHourKey = weather?.current.time.slice(0, 13);
+const currentHourIndex =
+  weather && currentHourKey
+    ? weather.hourly.time.findIndex((time) => time.slice(0, 13) === currentHourKey)
+    : -1;
+
+const safeStartIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
 
 const hourlyForecastData =
-  weather?.hourly.time.slice(0, 8).map((time, index) => ({
-    id: index.toString(),
-    timeLabel: formatHourLabel(time, index),
-    temperature: Math.round(weather.hourly.temperature_2m[index]),
-    weatherCode: weather.hourly.weather_code[index],
-    icon: "☁️",
-    unit: weather.current_units.temperature_2m,
-  })) ?? [];
+  weather?.hourly.time
+    .slice(safeStartIndex, safeStartIndex + 8)
+    .map((time, index) => {
+      const actualIndex = safeStartIndex + index;
+
+      return {
+        id: actualIndex.toString(),
+        timeLabel: formatHourLabel(time, index),
+        temperature: Math.round(weather.hourly.temperature_2m[actualIndex]),
+        weatherCode: weather.hourly.weather_code[actualIndex],
+        icon: "☁️",
+        unit: weather.current_units.temperature_2m,
+      };
+    }) ?? [];
 
 const currentConditionData = weather
   ? {

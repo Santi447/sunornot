@@ -10,6 +10,7 @@ export interface WeatherResponse {
     visibility: string;
   };
   current: {
+    time: string;
     temperature_2m: number;
     relative_humidity_2m: number;
     apparent_temperature: number;

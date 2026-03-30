@@ -31,6 +31,19 @@ function formatHourLabel(dateString: string, index: number): string {
   if (hour === 12) return "12 PM";
   return `${hour - 12} PM`;
 }
+function tempIconfromTemperature(temp: number, unit: string) {
+  if (unit === "°C") {
+    if (temp <= 0) return "❄️";
+    if (temp <= 15) return "🌤️";
+    if (temp <= 25) return "⛅";
+    return "☀️";
+  } else {
+    if (temp <= 32) return "❄️";
+    if (temp <= 59) return "🌤️";
+    if (temp <= 77) return "⛅";
+    return "☀️";
+  }
+}
 
 export default function Forecast() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
@@ -53,7 +66,10 @@ export default function Forecast() {
     weather?.daily.time.map((day, index) => ({
       id: index.toString(),
       day: formatDayLabel(day, index),
-      icon: "☁️",
+      icon: tempIconfromTemperature(
+        weather.daily.temperature_2m_max[index],
+        weather.current_units.temperature_2m
+      ),
       high: Math.round(weather.daily.temperature_2m_max[index]),
       low: Math.round(weather.daily.temperature_2m_min[index]),
       weatherCode: weather.daily.weather_code[index],
@@ -77,7 +93,10 @@ const hourlyForecastData =
         timeLabel: formatHourLabel(time, index),
         temperature: Math.round(weather.hourly.temperature_2m[actualIndex]),
         weatherCode: weather.hourly.weather_code[actualIndex],
-        icon: "☁️",
+        icon: tempIconfromTemperature(
+          weather.hourly.temperature_2m[actualIndex],
+          weather.current_units.temperature_2m
+        ),
         unit: weather.current_units.temperature_2m,
       };
     }) ?? [];
@@ -86,7 +105,10 @@ const currentConditionData = weather
   ? {
       city: "Calgary",
       temperature: Math.round(weather.current.temperature_2m),
-      tempIcon: "☁️",
+      tempIcon: tempIconfromTemperature(
+        weather.current.temperature_2m,
+        weather.current_units.temperature_2m
+      ),
       condition: "Cloudy",
       high: Math.round(weather.daily.temperature_2m_max[0]),
       low: Math.round(weather.daily.temperature_2m_min[0]),

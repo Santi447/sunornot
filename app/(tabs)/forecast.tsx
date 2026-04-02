@@ -9,51 +9,61 @@ import ForecastHeader from "@/components/forecastHeader";
 import { LinearGradient } from "expo-linear-gradient";
 import { getWeatherForecast } from "@/services/weatherApi";
 import { WeatherResponse } from "@/types/weather";
-import { LogBox } from 'react-native';
+import { LogBox } from "react-native";
+import { useSettings } from "@/components/settings_screen/settings_context";
 
 function formatDayLabel(dateString: string, index: number): string {
   if (index === 0) return "Today";
-
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
-
   return date.toLocaleDateString("en-US", {
     weekday: "long",
     timeZone: "America/Edmonton",
   });
 }
-function formatHourLabel(dateString: string, index: number): string {
+
+function formatHourLabel(dateString: string, index: number, timeFormat: string): string {
   if (index === 0) return "Now";
-
   const hour = Number(dateString.split("T")[1].split(":")[0]);
-
+  if (timeFormat === "24hr") return `${String(hour).padStart(2, "0")}:00`;
   if (hour === 0) return "12 AM";
   if (hour < 12) return `${hour} AM`;
   if (hour === 12) return "12 PM";
   return `${hour - 12} PM`;
 }
-function tempIconfromTemperature(temp: number, unit: string) {
-  if (unit === "°C") {
-    if (temp <= 0) return "❄️";
-    if (temp <= 15) return "🌤️";
-    if (temp <= 25) return "⛅";
-    return "☀️";
-  } else {
-    if (temp <= 32) return "❄️";
-    if (temp <= 59) return "🌤️";
-    if (temp <= 77) return "⛅";
-    return "☀️";
-  }
+
+function toDisplayTemp(celsius: number, unit: string): number {
+  if (unit === "°F") return Math.round((celsius * 9) / 5 + 32);
+  return Math.round(celsius);
+}
+
+function toDisplayWind(kmh: number, unit: string): number {
+  if (unit === "mph") return Math.round(kmh * 0.621371);
+  return Math.round(kmh);
+}
+
+function tempIconFromTemp(celsius: number): string {
+  if (celsius <= 0) return "❄️";
+  if (celsius <= 15) return "🌤️";
+  if (celsius <= 25) return "⛅";
+  return "☀️";
 }
 
 export default function Forecast() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [loading, setLoading] = useState(true);
-    useEffect(() => {
+
+  // Pull the user's chosen unit from settings
+  const { settings } = useSettings();
+  const unit = settings.tempUnit; 
+  const windUnit = settings.windUnit;
+  const timeFormat = settings.timeFormat;
+
+  useEffect(() => {
     const loadWeather = async () => {
       try {
         const data = await getWeatherForecast(51.0447, -114.0719);
-        LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+        LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
         setWeather(data);
       } catch (error) {
         console.log("Failed to load weather:", error);
@@ -61,96 +71,89 @@ export default function Forecast() {
         setLoading(false);
       }
     };
-
     loadWeather();
   }, []);
+
+
   const tenDayForecastData =
     weather?.daily.time.map((day, index) => ({
       id: index.toString(),
       day: formatDayLabel(day, index),
-      icon: tempIconfromTemperature(
-        weather.daily.temperature_2m_max[index],
-        weather.current_units.temperature_2m
-      ),
-      high: Math.round(weather.daily.temperature_2m_max[index]),
-      low: Math.round(weather.daily.temperature_2m_min[index]),
+      icon: tempIconFromTemp(weather.daily.temperature_2m_max[index]),
+      high: toDisplayTemp(weather.daily.temperature_2m_max[index], unit),
+      low: toDisplayTemp(weather.daily.temperature_2m_min[index], unit),
       weatherCode: weather.daily.weather_code[index],
     })) ?? [];
-const currentHourKey = weather?.current.time.slice(0, 13);
-const currentHourIndex =
-  weather && currentHourKey
-    ? weather.hourly.time.findIndex((time) => time.slice(0, 13) === currentHourKey)
-    : -1;
 
-const safeStartIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
+  const currentHourKey = weather?.current.time.slice(0, 13);
+  const currentHourIndex =
+    weather && currentHourKey
+      ? weather.hourly.time.findIndex((t) => t.slice(0, 13) === currentHourKey)
+      : -1;
+  const safeStartIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
 
-const hourlyForecastData =
-  weather?.hourly.time
-    .slice(safeStartIndex, safeStartIndex + 8)
-    .map((time, index) => {
-      const actualIndex = safeStartIndex + index;
+  const hourlyForecastData =
+    weather?.hourly.time
+      .slice(safeStartIndex, safeStartIndex + 8)
+      .map((time, index) => {
+        const actualIndex = safeStartIndex + index;
+        return {
+          id: actualIndex.toString(),
+          timeLabel: formatHourLabel(time, index, timeFormat),
+          temperature: toDisplayTemp(weather.hourly.temperature_2m[actualIndex], unit),
+          weatherCode: weather.hourly.weather_code[actualIndex],
+          icon: tempIconFromTemp(weather.hourly.temperature_2m[actualIndex]),
+          unit,
+        };
+      }) ?? [];
 
-      return {
-        id: actualIndex.toString(),
-        timeLabel: formatHourLabel(time, index),
-        temperature: Math.round(weather.hourly.temperature_2m[actualIndex]),
-        weatherCode: weather.hourly.weather_code[actualIndex],
-        icon: tempIconfromTemperature(
-          weather.hourly.temperature_2m[actualIndex],
-          weather.current_units.temperature_2m
-        ),
-        unit: weather.current_units.temperature_2m,
-      };
-    }) ?? [];
+  const currentConditionData = weather
+    ? {
+        city: "Calgary",
+        temperature: toDisplayTemp(weather.current.temperature_2m, unit),
+        tempIcon: tempIconFromTemp(weather.current.temperature_2m),
+        condition: "Cloudy",
+        high: toDisplayTemp(weather.daily.temperature_2m_max[0], unit),
+        low: toDisplayTemp(weather.daily.temperature_2m_min[0], unit),
+        windText: `${toDisplayWind(weather.current.wind_speed_10m, windUnit)} ${windUnit}`,
+        humidity: weather.current.relative_humidity_2m,
+        unit,
+      }
+    : null;
 
-const currentConditionData = weather
-  ? {
-      city: "Calgary",
-      temperature: Math.round(weather.current.temperature_2m),
-      tempIcon: tempIconfromTemperature(
-        weather.current.temperature_2m,
-        weather.current_units.temperature_2m
-      ),
-      condition: "Cloudy",
-      high: Math.round(weather.daily.temperature_2m_max[0]),
-      low: Math.round(weather.daily.temperature_2m_min[0]),
-      windText: `${Math.round(weather.current.wind_speed_10m)} ${weather.current_units.wind_speed_10m}`,
-      humidity: weather.current.relative_humidity_2m,
-      unit: weather.current_units.temperature_2m,
-    }
-  : null;
-const weatherConditionData = weather
-  ? [
-      {
-        id: "1",
-        icon: "🌀",
-        label: "Wind",
-        value: Math.round(weather.current.wind_speed_10m),
-        unit: weather.current_units.wind_speed_10m,
-      },
-      {
-        id: "2",
-        icon: "💧",
-        label: "Humidity",
-        value: weather.current.relative_humidity_2m,
-        unit: weather.current_units.relative_humidity_2m,
-      },
-      {
-        id: "3",
-        icon: "☀️",
-        label: "UV Index",
-        value: Math.round(weather.daily.uv_index_max[0]),
-        unit: "",
-      },
-      {
-        id: "4",
-        icon: "👁",
-        label: "Visibility",
-        value: Math.round(weather.current.visibility / 1000),
-        unit: weather.current_units.visibility,
-      },
-    ]
-  : [];
+  const weatherConditionData = weather
+    ? [
+        {
+          id: "1",
+          icon: "🌀",
+          label: "Wind",
+          value: toDisplayWind(weather.current.wind_speed_10m, windUnit),
+          unit: windUnit,
+        },
+        {
+          id: "2",
+          icon: "💧",
+          label: "Humidity",
+          value: weather.current.relative_humidity_2m,
+          unit: weather.current_units.relative_humidity_2m,
+        },
+        {
+          id: "3",
+          icon: "☀️",
+          label: "UV Index",
+          value: Math.round(weather.daily.uv_index_max[0]),
+          unit: "",
+        },
+        {
+          id: "4",
+          icon: "👁",
+          label: "Visibility",
+          value: Math.round(weather.current.visibility / 1000),
+          unit: weather.current_units.visibility,
+        },
+      ]
+    : [];
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <LinearGradient
@@ -170,9 +173,9 @@ const weatherConditionData = weather
             onPressCalendar={() => console.log("Calendar pressed")}
           />
           <View>
-          {!loading && currentConditionData && (
-            <CurrentCondition {...currentConditionData} />
-          )}
+            {!loading && currentConditionData && (
+              <CurrentCondition {...currentConditionData} />
+            )}
           </View>
           <WeatherConditionList data={weatherConditionData} />
           {!loading && <HourlyForecastList data={hourlyForecastData} />}

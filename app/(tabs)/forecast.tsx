@@ -6,10 +6,11 @@ import WeatherConditionList from "@/components/weatherConditionList";
 import { getWeatherForecast } from "@/services/weatherApi";
 import { WeatherResponse } from "@/types/weather";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { LogBox, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { weatherCodeToIcon } from "@/utils/weatherHelpers";
 
 function formatDayLabel(dateString: string, index: number): string {
   if (index === 0) return "Today";
@@ -32,17 +33,17 @@ function formatHourLabel(dateString: string, index: number): string {
   if (hour === 12) return "12 PM";
   return `${hour - 12} PM`;
 }
-function tempIconfromTemperature(temp: number, unit: string) {
+function StringfromTemperature(temp: number, unit: string) {
   if (unit === "°C") {
-    if (temp <= 0) return "❄️";
-    if (temp <= 15) return "🌤️";
-    if (temp <= 25) return "⛅";
-    return "☀️";
+    if (temp <= 0) return "Cold";
+    if (temp <= 15) return "Cool";
+    if (temp <= 25) return "Warm";
+    return "Hot";
   } else {
-    if (temp <= 32) return "❄️";
-    if (temp <= 59) return "🌤️";
-    if (temp <= 77) return "⛅";
-    return "☀️";
+    if (temp <= 32) return "Cold";
+    if (temp <= 59) return "Cool";
+    if (temp <= 77) return "Warm";
+    return "Hot";
   }
 }
 
@@ -76,14 +77,13 @@ export default function Forecast() {
 
     loadWeather();
   }, [latitude, longitude]);
+  // Prepare data for each section
+  // For 10-day forecast, we can directly map from daily data
   const tenDayForecastData =
     weather?.daily.time.map((day, index) => ({
       id: index.toString(),
       day: formatDayLabel(day, index),
-      icon: tempIconfromTemperature(
-        weather.daily.temperature_2m_max[index],
-        weather.current_units.temperature_2m,
-      ),
+      icon: weatherCodeToIcon(weather.daily.weather_code[index]),
       high: Math.round(weather.daily.temperature_2m_max[index]),
       low: Math.round(weather.daily.temperature_2m_min[index]),
       weatherCode: weather.daily.weather_code[index],
@@ -97,7 +97,7 @@ export default function Forecast() {
       : -1;
 
   const safeStartIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
-
+// For hourly forecast, we take the next 8 hours starting from current hour
   const hourlyForecastData =
     weather?.hourly.time
       .slice(safeStartIndex, safeStartIndex + 8)
@@ -109,23 +109,20 @@ export default function Forecast() {
           timeLabel: formatHourLabel(time, index),
           temperature: Math.round(weather.hourly.temperature_2m[actualIndex]),
           weatherCode: weather.hourly.weather_code[actualIndex],
-          icon: tempIconfromTemperature(
-            weather.hourly.temperature_2m[actualIndex],
-            weather.current_units.temperature_2m,
-          ),
+          icon: weatherCodeToIcon(weather.hourly.weather_code[actualIndex]),
           unit: weather.current_units.temperature_2m,
         };
       }) ?? [];
-
+  // For current conditions, we pull from the current weather data
   const currentConditionData = weather
     ? {
         city: cityName,
         temperature: Math.round(weather.current.temperature_2m),
-        tempIcon: tempIconfromTemperature(
+        tempIcon: weatherCodeToIcon(weather.current.weather_code),
+        condition: StringfromTemperature(
           weather.current.temperature_2m,
           weather.current_units.temperature_2m,
         ),
-        condition: "Cloudy",
         high: Math.round(weather.daily.temperature_2m_max[0]),
         low: Math.round(weather.daily.temperature_2m_min[0]),
         windText: `${Math.round(weather.current.wind_speed_10m)} ${weather.current_units.wind_speed_10m}`,
@@ -133,6 +130,7 @@ export default function Forecast() {
         unit: weather.current_units.temperature_2m,
       }
     : null;
+  // For the weather condition list, we can pull out key details like wind, humidity, UV index, etc.
   const weatherConditionData = weather
     ? [
         {
@@ -165,29 +163,36 @@ export default function Forecast() {
         },
       ]
     : [];
+
   return (
+    // SafeAreaView ensures content doesn't overlap with notches or system UI
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      { /* LinearGradient provides a nice background gradient for the entire screen */ }
       <LinearGradient
         colors={["#3d7a8a", "#234E5B", "#0A1E25"]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.2 }}
         style={styles.container}
       >
+        {/* ScrollView allows the content to be scrollable, especially important for smaller screens or when there's a lot of data */}
         <ScrollView
           nestedScrollEnabled
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {/* ForecastHeader displays the city name and has buttons for search and calendar (functionality can be added later) */}
           <ForecastHeader
             city={cityName}
-            onPressSearch={() => console.log("Search pressed")}
+            onPressSearch={() => router.push("/(tabs)/cities")}
             onPressCalendar={() => console.log("Calendar pressed")}
           />
+          {/* CurrentCondition shows the current weather details at the top of the screen */}
           <View>
             {!loading && currentConditionData && (
               <CurrentCondition {...currentConditionData} />
             )}
           </View>
+            {/* WeatherConditionList shows key weather details like wind, humidity, UV index, etc. */}
           <WeatherConditionList data={weatherConditionData} />
           {!loading && <HourlyForecastList data={hourlyForecastData} />}
           {!loading && <TenDayForecastList data={tenDayForecastData} />}
@@ -196,7 +201,7 @@ export default function Forecast() {
     </SafeAreaView>
   );
 }
-
+// Styles for the Forecast screen, using a dark theme with blues and grays to match the weather app aesthetic
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

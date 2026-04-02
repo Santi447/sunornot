@@ -44,6 +44,27 @@ export default function TabLayout() {
           headerShown: false,
         }}
       />
+
+      <Tabs.Screen
+        name="settings"
+        options={{
+          sceneStyle: { backgroundColor: "#0A1E25" },
+          title: "Settings",
+          tabBarIcon: ({ focused }) => (
+            <MaterialCommunityIcons
+              name="cog"
+              size={30}
+              color={focused ? "#37D7FF" : "gray"}
+            />
+          ),
+          tabBarStyle: { backgroundColor: "#0A1E25", opacity: 0.95 },
+          tabBarLabel: "Settings",
+          headerShown: false,
+        }}
+      />
+
     </Tabs>
+
+    
   );
 }

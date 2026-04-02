@@ -1,22 +1,22 @@
+import Feather from "@expo/vector-icons/Feather";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
+  Alert,
   FlatList,
   Pressable,
-  Alert,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { useEffect, useState, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import Feather from "@expo/vector-icons/Feather";
-import { useRouter } from "expo-router";
 
-import CityCard from "@/components/cityCard";
 import AddCityModal from "@/components/addCityModal";
-import { City, CityWeather } from "@/types/city";
+import CityCard from "@/components/cityCard";
 import { DEFAULT_CITIES } from "@/data/cities";
 import { getWeatherForecast } from "@/services/weatherApi";
+import { City, CityWeather } from "@/types/city";
 
 export default function Cities() {
   const router = useRouter();
@@ -28,17 +28,18 @@ export default function Cities() {
   useEffect(() => {
     setCityWeathers((prev) => {
       const existingMap = new Map(prev.map((cw) => [cw.city.id, cw]));
-      return cities.map((city) =>
-        existingMap.get(city.id) ?? {
-          city,
-          temperature: null,
-          high: null,
-          low: null,
-          weatherCode: null,
-          unit: "°F",
-          loading: true,
-          error: false,
-        }
+      return cities.map(
+        (city) =>
+          existingMap.get(city.id) ?? {
+            city,
+            temperature: null,
+            high: null,
+            low: null,
+            weatherCode: null,
+            unit: "°F",
+            loading: true,
+            error: false,
+          },
       );
     });
   }, [cities]);
@@ -60,16 +61,14 @@ export default function Cities() {
                 loading: false,
                 error: false,
               }
-            : cw
-        )
+            : cw,
+        ),
       );
     } catch {
       setCityWeathers((prev) =>
         prev.map((cw) =>
-          cw.city.id === city.id
-            ? { ...cw, loading: false, error: true }
-            : cw
-        )
+          cw.city.id === city.id ? { ...cw, loading: false, error: true } : cw,
+        ),
       );
     }
   }, []);
@@ -101,8 +100,14 @@ export default function Cities() {
   }
 
   function handleCityPress(cityWeather: CityWeather) {
-    // Navigate to forecast tab (you can extend this to pass lat/lon via params)
-    router.push("/(tabs)/forecast");
+    router.push({
+      pathname: "/(tabs)/forecast",
+      params: {
+        lat: cityWeather.city.latitude.toString(),
+        lon: cityWeather.city.longitude.toString(),
+        city: cityWeather.city.name,
+      },
+    });
   }
 
   const existingIds = cities.map((c) => c.id);
@@ -169,7 +174,6 @@ export default function Cities() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

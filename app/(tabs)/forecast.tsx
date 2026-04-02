@@ -1,15 +1,15 @@
-import { View, StyleSheet, ScrollView } from "react-native";
-import { useEffect, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
 import CurrentCondition from "@/components/currentCondition";
+import ForecastHeader from "@/components/forecastHeader";
 import HourlyForecastList from "@/components/hourlyForecastList";
 import TenDayForecastList from "@/components/tenDayForecastList";
 import WeatherConditionList from "@/components/weatherConditionList";
-import ForecastHeader from "@/components/forecastHeader";
-import { LinearGradient } from "expo-linear-gradient";
 import { getWeatherForecast } from "@/services/weatherApi";
 import { WeatherResponse } from "@/types/weather";
-import { LogBox } from 'react-native';
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { LogBox, ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function formatDayLabel(dateString: string, index: number): string {
   if (index === 0) return "Today";
@@ -47,13 +47,25 @@ function tempIconfromTemperature(temp: number, unit: string) {
 }
 
 export default function Forecast() {
+  const params = useLocalSearchParams<{
+    lat?: string;
+    lon?: string;
+    city?: string;
+  }>();
+
+  const parsedLat = Number(params.lat);
+  const parsedLon = Number(params.lon);
+  const latitude = Number.isFinite(parsedLat) ? parsedLat : 51.0447;
+  const longitude = Number.isFinite(parsedLon) ? parsedLon : -114.0719;
+  const cityName = params.city ?? "Calgary";
+
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [loading, setLoading] = useState(true);
-    useEffect(() => {
+  useEffect(() => {
     const loadWeather = async () => {
       try {
-        const data = await getWeatherForecast(51.0447, -114.0719);
-        LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+        const data = await getWeatherForecast(latitude, longitude);
+        LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
         setWeather(data);
       } catch (error) {
         console.log("Failed to load weather:", error);
@@ -63,94 +75,96 @@ export default function Forecast() {
     };
 
     loadWeather();
-  }, []);
+  }, [latitude, longitude]);
   const tenDayForecastData =
     weather?.daily.time.map((day, index) => ({
       id: index.toString(),
       day: formatDayLabel(day, index),
       icon: tempIconfromTemperature(
         weather.daily.temperature_2m_max[index],
-        weather.current_units.temperature_2m
+        weather.current_units.temperature_2m,
       ),
       high: Math.round(weather.daily.temperature_2m_max[index]),
       low: Math.round(weather.daily.temperature_2m_min[index]),
       weatherCode: weather.daily.weather_code[index],
     })) ?? [];
-const currentHourKey = weather?.current.time.slice(0, 13);
-const currentHourIndex =
-  weather && currentHourKey
-    ? weather.hourly.time.findIndex((time) => time.slice(0, 13) === currentHourKey)
-    : -1;
+  const currentHourKey = weather?.current.time.slice(0, 13);
+  const currentHourIndex =
+    weather && currentHourKey
+      ? weather.hourly.time.findIndex(
+          (time) => time.slice(0, 13) === currentHourKey,
+        )
+      : -1;
 
-const safeStartIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
+  const safeStartIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
 
-const hourlyForecastData =
-  weather?.hourly.time
-    .slice(safeStartIndex, safeStartIndex + 8)
-    .map((time, index) => {
-      const actualIndex = safeStartIndex + index;
+  const hourlyForecastData =
+    weather?.hourly.time
+      .slice(safeStartIndex, safeStartIndex + 8)
+      .map((time, index) => {
+        const actualIndex = safeStartIndex + index;
 
-      return {
-        id: actualIndex.toString(),
-        timeLabel: formatHourLabel(time, index),
-        temperature: Math.round(weather.hourly.temperature_2m[actualIndex]),
-        weatherCode: weather.hourly.weather_code[actualIndex],
-        icon: tempIconfromTemperature(
-          weather.hourly.temperature_2m[actualIndex],
-          weather.current_units.temperature_2m
+        return {
+          id: actualIndex.toString(),
+          timeLabel: formatHourLabel(time, index),
+          temperature: Math.round(weather.hourly.temperature_2m[actualIndex]),
+          weatherCode: weather.hourly.weather_code[actualIndex],
+          icon: tempIconfromTemperature(
+            weather.hourly.temperature_2m[actualIndex],
+            weather.current_units.temperature_2m,
+          ),
+          unit: weather.current_units.temperature_2m,
+        };
+      }) ?? [];
+
+  const currentConditionData = weather
+    ? {
+        city: cityName,
+        temperature: Math.round(weather.current.temperature_2m),
+        tempIcon: tempIconfromTemperature(
+          weather.current.temperature_2m,
+          weather.current_units.temperature_2m,
         ),
+        condition: "Cloudy",
+        high: Math.round(weather.daily.temperature_2m_max[0]),
+        low: Math.round(weather.daily.temperature_2m_min[0]),
+        windText: `${Math.round(weather.current.wind_speed_10m)} ${weather.current_units.wind_speed_10m}`,
+        humidity: weather.current.relative_humidity_2m,
         unit: weather.current_units.temperature_2m,
-      };
-    }) ?? [];
-
-const currentConditionData = weather
-  ? {
-      city: "Calgary",
-      temperature: Math.round(weather.current.temperature_2m),
-      tempIcon: tempIconfromTemperature(
-        weather.current.temperature_2m,
-        weather.current_units.temperature_2m
-      ),
-      condition: "Cloudy",
-      high: Math.round(weather.daily.temperature_2m_max[0]),
-      low: Math.round(weather.daily.temperature_2m_min[0]),
-      windText: `${Math.round(weather.current.wind_speed_10m)} ${weather.current_units.wind_speed_10m}`,
-      humidity: weather.current.relative_humidity_2m,
-      unit: weather.current_units.temperature_2m,
-    }
-  : null;
-const weatherConditionData = weather
-  ? [
-      {
-        id: "1",
-        icon: "🌀",
-        label: "Wind",
-        value: Math.round(weather.current.wind_speed_10m),
-        unit: weather.current_units.wind_speed_10m,
-      },
-      {
-        id: "2",
-        icon: "💧",
-        label: "Humidity",
-        value: weather.current.relative_humidity_2m,
-        unit: weather.current_units.relative_humidity_2m,
-      },
-      {
-        id: "3",
-        icon: "☀️",
-        label: "UV Index",
-        value: Math.round(weather.daily.uv_index_max[0]),
-        unit: "",
-      },
-      {
-        id: "4",
-        icon: "👁",
-        label: "Visibility",
-        value: Math.round(weather.current.visibility / 1000),
-        unit: weather.current_units.visibility,
-      },
-    ]
-  : [];
+      }
+    : null;
+  const weatherConditionData = weather
+    ? [
+        {
+          id: "1",
+          icon: "🌀",
+          label: "Wind",
+          value: Math.round(weather.current.wind_speed_10m),
+          unit: weather.current_units.wind_speed_10m,
+        },
+        {
+          id: "2",
+          icon: "💧",
+          label: "Humidity",
+          value: weather.current.relative_humidity_2m,
+          unit: weather.current_units.relative_humidity_2m,
+        },
+        {
+          id: "3",
+          icon: "☀️",
+          label: "UV Index",
+          value: Math.round(weather.daily.uv_index_max[0]),
+          unit: "",
+        },
+        {
+          id: "4",
+          icon: "👁",
+          label: "Visibility",
+          value: Math.round(weather.current.visibility / 1000),
+          unit: weather.current_units.visibility,
+        },
+      ]
+    : [];
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <LinearGradient
@@ -165,14 +179,14 @@ const weatherConditionData = weather
           showsVerticalScrollIndicator={false}
         >
           <ForecastHeader
-            city="Calgary"
+            city={cityName}
             onPressSearch={() => console.log("Search pressed")}
             onPressCalendar={() => console.log("Calendar pressed")}
           />
           <View>
-          {!loading && currentConditionData && (
-            <CurrentCondition {...currentConditionData} />
-          )}
+            {!loading && currentConditionData && (
+              <CurrentCondition {...currentConditionData} />
+            )}
           </View>
           <WeatherConditionList data={weatherConditionData} />
           {!loading && <HourlyForecastList data={hourlyForecastData} />}

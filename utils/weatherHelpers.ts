@@ -10,6 +10,18 @@ export function weatherCodeToIcon(code: number): string {
   if (code <= 94) return "⛈️";
   return "🌩️";
 }
+export function weatherCodeToDescription(code: number): string {
+  if (code === 0) return "Clear sky";
+  if (code <= 2) return "Mainly clear";
+  if (code === 3) return "Overcast";
+  if (code <= 49) return "Fog";
+  if (code <= 59) return "Drizzle";
+  if (code <= 69) return "Rain";
+  if (code <= 79) return "Snow";
+  if (code <= 84) return "Rain showers";
+  if (code <= 94) return "Thunderstorms";
+  return "Heavy thunderstorms";
+}
 
 export function tempIconFromTemperature(temp: number, unit: string): string {
   if (unit === "°C") {

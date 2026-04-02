@@ -10,7 +10,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { LogBox, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { weatherCodeToIcon } from "@/utils/weatherHelpers";
+import { weatherCodeToIcon, weatherCodeToDescription } from "@/utils/weatherHelpers";
 
 function formatDayLabel(dateString: string, index: number): string {
   if (index === 0) return "Today";
@@ -32,19 +32,6 @@ function formatHourLabel(dateString: string, index: number): string {
   if (hour < 12) return `${hour} AM`;
   if (hour === 12) return "12 PM";
   return `${hour - 12} PM`;
-}
-function StringfromTemperature(temp: number, unit: string) {
-  if (unit === "°C") {
-    if (temp <= 0) return "Cold";
-    if (temp <= 15) return "Cool";
-    if (temp <= 25) return "Warm";
-    return "Hot";
-  } else {
-    if (temp <= 32) return "Cold";
-    if (temp <= 59) return "Cool";
-    if (temp <= 77) return "Warm";
-    return "Hot";
-  }
 }
 
 export default function Forecast() {
@@ -119,10 +106,7 @@ export default function Forecast() {
         city: cityName,
         temperature: Math.round(weather.current.temperature_2m),
         tempIcon: weatherCodeToIcon(weather.current.weather_code),
-        condition: StringfromTemperature(
-          weather.current.temperature_2m,
-          weather.current_units.temperature_2m,
-        ),
+        condition: weatherCodeToDescription(weather.current.weather_code),
         high: Math.round(weather.daily.temperature_2m_max[0]),
         low: Math.round(weather.daily.temperature_2m_min[0]),
         windText: `${Math.round(weather.current.wind_speed_10m)} ${weather.current_units.wind_speed_10m}`,

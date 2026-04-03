@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle, Line, Path, Polyline } from "react-native-svg";
+import { router } from "expo-router";
 
 import SegmentControl from "../../components/settings_screen/segments_control";
 import {
@@ -178,7 +179,7 @@ export default function SettingsScreen() {
       >
         <View style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity style={styles.headerLeft} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.headerLeft} activeOpacity={0.7} onPress={router.back}>
               <IconBack />
               <Text style={styles.headerTitle}>Settings</Text>
             </TouchableOpacity>
@@ -290,13 +291,10 @@ export default function SettingsScreen() {
                 right={<IconExternal />}
                 last
                 onPress={() => {
-                  // TODO: Linking.openURL("https://yourapp.com/privacy")
                 }}
               />
             </SettingsSection>
           </ScrollView>
-
-          {/* <BottomNavBar activeTab={activeTab} onTabPress={setActiveTab} /> */}
         </View>
       </LinearGradient>
     </SafeAreaView>
@@ -306,7 +304,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#0f1117",
   },
   container: {
     flex: 1,
@@ -317,6 +314,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: "rgba(19, 40, 51, 0.9)",
   },
   headerLeft: {
     flexDirection: "row",

@@ -18,7 +18,7 @@ export default function CurrentCondition({ tempIcon, city, temperature, conditio
 
       <Text style={styles.condition}>{condition}</Text>
       <Text style={styles.summary}>
-        High of {high}{unit}. Low of {low}{unit}. Winds from the {windText}. Humidity at {humidity}%.
+        High of {high}{unit}. Low of {low}{unit}. Wind speed is at {windText}. Humidity at {humidity}%.
       </Text>
     </View>
   );

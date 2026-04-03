@@ -44,15 +44,6 @@ function formatHourLabel(
   return `${hour - 12} PM`;
 }
 
-// function toDisplayTemp(celsius: number, unit: string): number {
-//   if (unit === "°F") return Math.round((celsius * 9) / 5 + 32);
-//   return Math.round(celsius);
-// }
-
-// function toDisplayWind(kmh: number, unit: string): number {
-//   if (unit === "mph") return Math.round(kmh * 0.621371);
-//   return Math.round(kmh);
-// }
 function formatTemperature(temp: number): number {
   return Math.round(temp);
 }

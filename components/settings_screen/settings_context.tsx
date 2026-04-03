@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type TempUnit = "°C" | "°F";
 export type WindUnit = "km/h" | "mph";
@@ -35,9 +35,7 @@ const DEFAULT_SETTINGS: Settings = {
 
 const STORAGE_KEY = "user_settings";
 
-
 const SettingsContext = createContext<SettingsContextValue | null>(null);
-
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -47,8 +45,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         try {
           setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(raw) });
-        } catch {
-        }
+        } catch {}
       }
     });
   }, []);
@@ -63,15 +60,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       value={{
         settings,
         setTempUnit: (tempUnit) => save({ ...settings, tempUnit }),
-        setWindUnit: (windUnit) => setSettings(prev => {
-  const updated = { ...prev, windUnit };
-  AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
-}),
+        setWindUnit: (windUnit) =>
+          setSettings((prev) => {
+            const updated = { ...prev, windUnit };
+            AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            return updated;
+          }),
         setTimeFormat: (timeFormat) => save({ ...settings, timeFormat }),
-        setDailyForecast: (dailyForecast) => save({ ...settings, dailyForecast }),
+        setDailyForecast: (dailyForecast) =>
+          save({ ...settings, dailyForecast }),
         setSevereAlerts: (severeAlerts) => save({ ...settings, severeAlerts }),
-        setUseCurrentLocation: (useCurrentLocation) => save({ ...settings, useCurrentLocation }),
+        setUseCurrentLocation: (useCurrentLocation) =>
+          save({ ...settings, useCurrentLocation }),
       }}
     >
       {children}
@@ -81,6 +81,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
 export function useSettings(): SettingsContextValue {
   const ctx = useContext(SettingsContext);
-  if (!ctx) throw new Error("useSettings must be used inside <SettingsProvider>");
+  if (!ctx)
+    throw new Error("useSettings must be used inside <SettingsProvider>");
   return ctx;
 }

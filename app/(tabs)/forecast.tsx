@@ -5,22 +5,38 @@ import TenDayForecastList from "@/components/tenDayForecastList";
 import WeatherConditionList from "@/components/weatherConditionList";
 import { getWeatherForecast } from "@/services/weatherApi";
 import { WeatherResponse } from "@/types/weather";
-import { LogBox } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { LogBox, ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  weatherCodeToIcon,
+  weatherCodeToDescription,
+} from "@/utils/weatherHelpers";
 import { useSettings } from "@/components/settings_screen/settings_context";
 
 function formatDayLabel(dateString: string, index: number): string {
   if (index === 0) return "Today";
+
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
+
   return date.toLocaleDateString("en-US", {
     weekday: "long",
     timeZone: "America/Edmonton",
   });
 }
 
-function formatHourLabel(dateString: string, index: number, timeFormat: string): string {
+function formatHourLabel(
+  dateString: string,
+  index: number,
+  timeFormat: string,
+): string {
   if (index === 0) return "Now";
+
   const hour = Number(dateString.split("T")[1].split(":")[0]);
+
   if (timeFormat === "24hr") return `${String(hour).padStart(2, "0")}:00`;
   if (hour === 0) return "12 AM";
   if (hour < 12) return `${hour} AM`;
@@ -36,13 +52,6 @@ function toDisplayTemp(celsius: number, unit: string): number {
 function toDisplayWind(kmh: number, unit: string): number {
   if (unit === "mph") return Math.round(kmh * 0.621371);
   return Math.round(kmh);
-}
-
-function tempIconFromTemp(celsius: number): string {
-  if (celsius <= 0) return "❄️";
-  if (celsius <= 15) return "🌤️";
-  if (celsius <= 25) return "⛅";
-  return "☀️";
 }
 
 export default function Forecast() {
@@ -61,16 +70,15 @@ export default function Forecast() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Pull the user's chosen unit from settings
   const { settings } = useSettings();
-  const unit = settings.tempUnit; 
+  const unit = settings.tempUnit;
   const windUnit = settings.windUnit;
   const timeFormat = settings.timeFormat;
 
   useEffect(() => {
     const loadWeather = async () => {
       try {
-        const data = await getWeatherForecast(51.0447, -114.0719);
+        const data = await getWeatherForecast(latitude, longitude);
         LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
         setWeather(data);
       } catch (error) {
@@ -79,15 +87,15 @@ export default function Forecast() {
         setLoading(false);
       }
     };
-    loadWeather();
-  }, []);
 
+    loadWeather();
+  }, [latitude, longitude]);
 
   const tenDayForecastData =
     weather?.daily.time.map((day, index) => ({
       id: index.toString(),
       day: formatDayLabel(day, index),
-      icon: tempIconFromTemp(weather.daily.temperature_2m_max[index]),
+      icon: weatherCodeToIcon(weather.daily.weather_code[index]),
       high: toDisplayTemp(weather.daily.temperature_2m_max[index], unit),
       low: toDisplayTemp(weather.daily.temperature_2m_min[index], unit),
       weatherCode: weather.daily.weather_code[index],
@@ -96,8 +104,11 @@ export default function Forecast() {
   const currentHourKey = weather?.current.time.slice(0, 13);
   const currentHourIndex =
     weather && currentHourKey
-      ? weather.hourly.time.findIndex((t) => t.slice(0, 13) === currentHourKey)
+      ? weather.hourly.time.findIndex(
+          (time) => time.slice(0, 13) === currentHourKey,
+        )
       : -1;
+
   const safeStartIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
 
   const hourlyForecastData =
@@ -105,22 +116,26 @@ export default function Forecast() {
       .slice(safeStartIndex, safeStartIndex + 8)
       .map((time, index) => {
         const actualIndex = safeStartIndex + index;
+
         return {
           id: actualIndex.toString(),
           timeLabel: formatHourLabel(time, index, timeFormat),
-          temperature: toDisplayTemp(weather.hourly.temperature_2m[actualIndex], unit),
+          temperature: toDisplayTemp(
+            weather.hourly.temperature_2m[actualIndex],
+            unit,
+          ),
           weatherCode: weather.hourly.weather_code[actualIndex],
-          icon: tempIconFromTemp(weather.hourly.temperature_2m[actualIndex]),
+          icon: weatherCodeToIcon(weather.hourly.weather_code[actualIndex]),
           unit,
         };
       }) ?? [];
 
   const currentConditionData = weather
     ? {
-        city: "Calgary",
+        city: cityName,
         temperature: toDisplayTemp(weather.current.temperature_2m, unit),
-        tempIcon: tempIconFromTemp(weather.current.temperature_2m),
-        condition: "Cloudy",
+        tempIcon: weatherCodeToIcon(weather.current.weather_code),
+        condition: weatherCodeToDescription(weather.current.weather_code),
         high: toDisplayTemp(weather.daily.temperature_2m_max[0], unit),
         low: toDisplayTemp(weather.daily.temperature_2m_min[0], unit),
         windText: `${toDisplayWind(weather.current.wind_speed_10m, windUnit)} ${windUnit}`,
@@ -163,34 +178,30 @@ export default function Forecast() {
     : [];
 
   return (
-    // SafeAreaView ensures content doesn't overlap with notches or system UI
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      { /* LinearGradient provides a nice background gradient for the entire screen */ }
       <LinearGradient
         colors={["#3d7a8a", "#234E5B", "#0A1E25"]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.2 }}
         style={styles.container}
       >
-        {/* ScrollView allows the content to be scrollable, especially important for smaller screens or when there's a lot of data */}
         <ScrollView
           nestedScrollEnabled
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* ForecastHeader displays the city name and has buttons for search and calendar (functionality can be added later) */}
           <ForecastHeader
             city={cityName}
             onPressSearch={() => router.push("/(tabs)/cities")}
             onPressCalendar={() => console.log("Calendar pressed")}
           />
-          {/* CurrentCondition shows the current weather details at the top of the screen */}
+
           <View>
             {!loading && currentConditionData && (
               <CurrentCondition {...currentConditionData} />
             )}
           </View>
-            {/* WeatherConditionList shows key weather details like wind, humidity, UV index, etc. */}
+
           <WeatherConditionList data={weatherConditionData} />
           {!loading && <HourlyForecastList data={hourlyForecastData} />}
           {!loading && <TenDayForecastList data={tenDayForecastData} />}
@@ -199,7 +210,7 @@ export default function Forecast() {
     </SafeAreaView>
   );
 }
-// Styles for the Forecast screen, using a dark theme with blues and grays to match the weather app aesthetic
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

@@ -2,18 +2,6 @@ import { View, Text, FlatList, StyleSheet } from "react-native";
 import DayForecast from "./dayForecast";
 import {TenDayForecastListProps} from "../types/dayForecast";
 
-const forecastData = [
-  { id: "1", day: "Today", icon: "⛅", high: 32, low: 18, weatherCode: 1000 },
-  { id: "2", day: "Tuesday", icon: "🌧️", high: 26, low: 14, weatherCode: 1001 },
-  { id: "3", day: "Wednesday", icon: "❄️", high: 22, low: 10, weatherCode: 1002 },
-  { id: "4", day: "Thursday", icon: "☁️", high: 24, low: 12, weatherCode: 1003 },
-  { id: "5", day: "Friday", icon: "⛅", high: 32, low: 18, weatherCode: 1000 },
-  { id: "6", day: "Saturday", icon: "🌧️", high: 26, low: 14, weatherCode: 1001 },
-  { id: "7", day: "Sunday", icon: "❄️", high: 22, low: 10, weatherCode: 1002 },
-  { id: "8", day: "Monday", icon: "☁️", high: 24, low: 12, weatherCode: 1003 },
-  { id: "9", day: "Tuesday", icon: "⛅", high: 32, low: 18, weatherCode: 1000 },
-  { id: "10", day: "Wednesday", icon: "🌧️", high: 26, low: 14, weatherCode: 1001 },
-];
 
 export default function TenDayForecastList({ data }: TenDayForecastListProps) {
   return (
@@ -36,6 +24,7 @@ export default function TenDayForecastList({ data }: TenDayForecastListProps) {
               high={item.high}
               low={item.low}
               weatherCode={item.weatherCode}
+              unit={item.unit}
             />
           )}
         />

@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type TempUnit = "°C" | "°F";
-export type WindUnit = "km/h" | "mph";
+export type WindUnit = "kmh" | "mph";
 export type TimeFormat = "12hr" | "24hr";
 
 interface Settings {
@@ -26,7 +26,7 @@ interface SettingsContextValue {
 
 const DEFAULT_SETTINGS: Settings = {
   tempUnit: "°C",
-  windUnit: "km/h",
+  windUnit: "kmh",
   timeFormat: "12hr",
   dailyForecast: true,
   severeAlerts: true,

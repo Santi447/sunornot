@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import AddCityModal from "@/components/addCityModal";
 import CityCard from "@/components/cityCard";
+import { useSettings } from "@/components/settings_screen/settings_context";
 import { DEFAULT_CITIES } from "@/data/cities";
 import { getWeatherForecast } from "@/services/weatherApi";
 import { City, CityWeather } from "@/types/city";
@@ -23,6 +24,7 @@ export default function Cities() {
   const [cities, setCities] = useState<City[]>(DEFAULT_CITIES);
   const [cityWeathers, setCityWeathers] = useState<CityWeather[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const { settings } = useSettings();
 
   // Initialise cityWeathers skeleton whenever cities list changes
   useEffect(() => {
@@ -45,33 +47,43 @@ export default function Cities() {
   }, [cities]);
 
   // Fetch weather for any city that is still loading
-  const fetchWeatherForCity = useCallback(async (city: City) => {
-    try {
-      const data = await getWeatherForecast(city.latitude, city.longitude);
-      setCityWeathers((prev) =>
-        prev.map((cw) =>
-          cw.city.id === city.id
-            ? {
-                ...cw,
-                temperature: Math.round(data.current.temperature_2m),
-                high: Math.round(data.daily.temperature_2m_max[0]),
-                low: Math.round(data.daily.temperature_2m_min[0]),
-                weatherCode: data.current.weather_code,
-                unit: data.current_units.temperature_2m,
-                loading: false,
-                error: false,
-              }
-            : cw,
-        ),
-      );
-    } catch {
-      setCityWeathers((prev) =>
-        prev.map((cw) =>
-          cw.city.id === city.id ? { ...cw, loading: false, error: true } : cw,
-        ),
-      );
-    }
-  }, []);
+  const fetchWeatherForCity = useCallback(
+    async (city: City) => {
+      try {
+        const data = await getWeatherForecast(
+          city.latitude,
+          city.longitude,
+          settings.tempUnit === "°C" ? "celsius" : "fahrenheit",
+          settings.windUnit === "kmh" ? "kmh": "mph",
+        );
+        setCityWeathers((prev) =>
+          prev.map((cw) =>
+            cw.city.id === city.id
+              ? {
+                  ...cw,
+                  temperature: Math.round(data.current.temperature_2m),
+                  high: Math.round(data.daily.temperature_2m_max[0]),
+                  low: Math.round(data.daily.temperature_2m_min[0]),
+                  weatherCode: data.current.weather_code,
+                  unit: data.current_units.temperature_2m,
+                  loading: false,
+                  error: false,
+                }
+              : cw,
+          ),
+        );
+      } catch {
+        setCityWeathers((prev) =>
+          prev.map((cw) =>
+            cw.city.id === city.id
+              ? { ...cw, loading: false, error: true }
+              : cw,
+          ),
+        );
+      }
+    },
+    [settings.tempUnit]
+  );
 
   // Trigger fetches whenever cityWeathers has new loading entries
   useEffect(() => {
@@ -79,6 +91,11 @@ export default function Cities() {
       .filter((cw) => cw.loading)
       .forEach((cw) => fetchWeatherForCity(cw.city));
   }, [cityWeathers, fetchWeatherForCity]);
+
+  // When temperature unit changes, reset all cities to loading so they refetch
+  useEffect(() => {
+    setCityWeathers((prev) => prev.map((cw) => ({ ...cw, loading: true })));
+  }, [settings.tempUnit]);
 
   function handleAddCity(city: City) {
     setCities((prev) => [...prev, city]);

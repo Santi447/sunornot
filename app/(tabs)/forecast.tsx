@@ -44,10 +44,10 @@ function formatHourLabel(
   return `${hour - 12} PM`;
 }
 
-function toDisplayTemp(celsius: number, unit: string): number {
-  if (unit === "°F") return Math.round((celsius * 9) / 5 + 32);
-  return Math.round(celsius);
-}
+// function toDisplayTemp(celsius: number, unit: string): number {
+//   if (unit === "°F") return Math.round((celsius * 9) / 5 + 32);
+//   return Math.round(celsius);
+// }
 
 function toDisplayWind(kmh: number, unit: string): number {
   if (unit === "mph") return Math.round(kmh * 0.621371);
@@ -78,7 +78,7 @@ export default function Forecast() {
   useEffect(() => {
     const loadWeather = async () => {
       try {
-        const data = await getWeatherForecast(latitude, longitude);
+        const data = await getWeatherForecast(latitude, longitude, unit === "°C" ? "celsius" : "fahrenheit", windUnit === "kmh" ? "kmh": "mph" );
         LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
         setWeather(data);
       } catch (error) {
@@ -89,16 +89,17 @@ export default function Forecast() {
     };
 
     loadWeather();
-  }, [latitude, longitude]);
+  }, [latitude, longitude, unit]);
 
   const tenDayForecastData =
     weather?.daily.time.map((day, index) => ({
       id: index.toString(),
       day: formatDayLabel(day, index),
       icon: weatherCodeToIcon(weather.daily.weather_code[index]),
-      high: toDisplayTemp(weather.daily.temperature_2m_max[index], unit),
-      low: toDisplayTemp(weather.daily.temperature_2m_min[index], unit),
+      high: weather.daily.temperature_2m_max[index], 
+      low: weather.daily.temperature_2m_min[index], 
       weatherCode: weather.daily.weather_code[index],
+      unit,
     })) ?? [];
 
   const currentHourKey = weather?.current.time.slice(0, 13);
@@ -120,10 +121,10 @@ export default function Forecast() {
         return {
           id: actualIndex.toString(),
           timeLabel: formatHourLabel(time, index, timeFormat),
-          temperature: toDisplayTemp(
+          temperature: 
             weather.hourly.temperature_2m[actualIndex],
-            unit,
-          ),
+            
+          
           weatherCode: weather.hourly.weather_code[actualIndex],
           icon: weatherCodeToIcon(weather.hourly.weather_code[actualIndex]),
           unit,
@@ -133,14 +134,14 @@ export default function Forecast() {
   const currentConditionData = weather
     ? {
         city: cityName,
-        temperature: toDisplayTemp(weather.current.temperature_2m, unit),
+        temperature: weather.current.temperature_2m, unit,
         tempIcon: weatherCodeToIcon(weather.current.weather_code),
         condition: weatherCodeToDescription(weather.current.weather_code),
-        high: toDisplayTemp(weather.daily.temperature_2m_max[0], unit),
-        low: toDisplayTemp(weather.daily.temperature_2m_min[0], unit),
-        windText: `${toDisplayWind(weather.current.wind_speed_10m, windUnit)} ${windUnit}`,
+        high: weather.daily.temperature_2m_max[0], 
+        low: weather.daily.temperature_2m_min[0],
+        windText: `${weather.current.wind_speed_10m} ${windUnit}`,
         humidity: weather.current.relative_humidity_2m,
-        unit,
+      
       }
     : null;
 

@@ -5,6 +5,7 @@ type DayForecastProps = {
   high: number;
   low: number;
   weatherCode: number;
+  unit: string;
 };
 type TenDayForecastListProps = {
   data?: DayForecastProps[];

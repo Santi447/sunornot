@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { DayForecastProps } from "../types/dayForecast";
-export default function DayForecast({ day, icon, high, low, weatherCode }: DayForecastProps) {
+export default function DayForecast({ day, icon, high, low, weatherCode, unit }: DayForecastProps) {
   return (
     <View style={styles.row}>
       <Text style={styles.dayText}>{day}</Text>
@@ -10,9 +10,9 @@ export default function DayForecast({ day, icon, high, low, weatherCode }: DayFo
       </View>
 
       <View style={styles.temperatureGroup}>
-        <Text style={styles.temperatureText}>{high}°F</Text>
+        <Text style={styles.temperatureText}>{high}{unit}</Text>
         <View style={styles.dot} />
-        <Text style={styles.lowText}>{low}°F</Text>
+        <Text style={styles.lowText}>{low}{unit}</Text>
       </View>
     </View>
   );

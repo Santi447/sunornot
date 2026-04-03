@@ -4,8 +4,8 @@ import { useSettings } from './settings_screen/settings_context';
 export default function CurrentCondition({ tempIcon, city, temperature, condition, high, low, windText, humidity,unit }: currentConditionProps ) {
   const { settings } = useSettings();
   const rawTemp = 22;
-  const displayTemp = settings.tempUnit === "°C" ? rawTemp : rawTemp * 9/5 + 32;
-  const displayWind = settings.windUnit === "km/h" ? 15 : 15 / 1.609;
+  // const displayTemp = settings.tempUnit === "°C" ? rawTemp : rawTemp * 9/5 + 32;
+  // const displayWind = settings.windUnit === "km/h" ? 15 : 15 / 1.609;
   return(
     <View style={styles.container}>
 
